@@ -1,2 +1,2 @@
 # AntarcticaCircumpolarIntrusions
-Repository for a physical oceanography manuscript submitted to Geophysical Research Letters.
+Repository for a physical oceanography manuscript submitted to Journal of Geophysical Research - Oceans.
