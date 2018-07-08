@@ -7,4 +7,5 @@ __pycache__/
 *.so
 
 # Cache dir (really large files).
-data_reproduce_figs/cache
+data_reproduce_figs/cache/*npz
+data_reproduce_figs/cache/*.nc
