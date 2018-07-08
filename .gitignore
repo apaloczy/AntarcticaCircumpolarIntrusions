@@ -5,7 +5,3 @@ __pycache__/
 *.swp
 # C extensions
 *.so
-
-# Figures.
-*.png
-*.eps
