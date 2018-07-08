@@ -280,6 +280,60 @@ def bmap_antarctica(ax, resolution='h'):
 	return m
 
 
+def near(x, x0, npts=1, return_index=False):
+    """
+    USAGE
+    -----
+    xnear = near(x, x0, npts=1, return_index=False)
+
+    Finds 'npts' points (defaults to 1) in array 'x'
+    that are closest to a specified 'x0' point.
+    If 'return_index' is True (defauts to False),
+    then the indices of the closest points are
+    returned. The indices are ordered in order of
+    closeness.
+    """
+    x = list(x)
+    xnear = []
+    xidxs = []
+    for n in range(npts):
+        idx = np.nanargmin(np.abs(np.array(x)-x0))
+        xnear.append(x.pop(idx))
+        if return_index:
+            xidxs.append(idx)
+    if return_index: # Sort indices according to the proximity of wanted points.
+        xidxs = [xidxs[i] for i in np.argsort(xnear).tolist()]
+    xnear.sort()
+
+    if npts==1:
+        xnear = xnear[0]
+        if return_index:
+            xidxs = xidxs[0]
+    else:
+        xnear = np.array(xnear)
+
+    if return_index:
+        return xidxs
+    else:
+        return xnear
+
+
+def UVz2iso(U, V, hisopyc, z):
+	ny, nx = hisopyc.shape
+	Uisopyc = np.nan*np.ones((ny,nx))
+	Visopyc = np.nan*np.ones((ny,nx))
+	for j in range(ny):
+		print("Row %d of %d"%(j+1,ny))
+		for i in range(nx):
+			if np.isnan(hisopyc[j,i]):
+				continue
+			else:
+				Uisopyc[j,i] = np.interp(hisopyc[j,i], z, U[:,j,i])
+				Visopyc[j,i] = np.interp(hisopyc[j,i], z, V[:,j,i])
+
+	return Uisopyc, Visopyc
+
+
 def isopyc_depth(dens0, z, isopyc=1027.75, dzref=1.):
     """
     USAGE
@@ -326,6 +380,50 @@ def isopyc_depth(dens0, z, isopyc=1027.75, dzref=1.):
             except ValueError:
                 print("Warning: More than 1 (%d) nearest depths found. Using the median of the depths for point (i=%d)."%(fz.sum(), i))
                 hisopyc[i] = np.nanmedian(zref[fz])
+
+    return hisopyc
+
+
+def isopyc_depth2(z, dens0, isopyc=1027.75, dzref=1.):
+    """
+    USAGE
+    -----
+    hisopyc = isopyc_depth(z, dens0, isopyc=1027.75)
+
+    Calculates the spatial distribution of the depth of a specified isopycnal 'isopyc'
+    (defaults to 1027.75 kg/m3) from a 3D density array rho0 (in kg/m3) with shape
+    (nz,ny,nx) and a 1D depth array 'z' (in m) with shape (nz).
+
+    'dzref' is the desired resolution for the refined depth array (defaults to 1 m) which
+    is generated for calculating the depth of the isopycnal. The smaller 'dzref', the smoother
+    the resolution of the returned isopycnal depth array 'hisopyc'.
+    """
+    z, dens0 = map(np.asanyarray, (z, dens0))
+    ny, nx = dens0.shape[1:]
+    if not np.all(np.diff(z>0)):
+        z = np.flipud(z)
+        dens0 = np.flipud(dens0)
+    zref = np.arange(z.min(), z.max(), dzref)
+
+    if np.ma.isMaskedArray(dens0):
+        dens0 = np.ma.filled(dens0, np.nan)
+
+    hisopyc = np.nan*np.ones((ny,nx))
+    for j in range(ny):
+        print("Row %d of %d"%(j+1,ny))
+        for i in range(nx):
+            dens0ij = dens0[:,j,i]
+            if np.logical_or(np.logical_or(isopyc<np.nanmin(dens0ij), np.nanmax(dens0ij)<isopyc), np.isnan(dens0ij).all()):
+                continue
+            else:
+                dens0ref = np.interp(zref, z, dens0ij) # Refined density profile.
+                dens0refn = near(dens0ref, isopyc)
+                fz=dens0ref==dens0refn
+                try:
+                    hisopyc[j,i] = zref[fz]
+                except ValueError:
+                    print("Warning: More than 1 (%d) nearest depths found. Using the median of the depths for point (j=%d,i=%d)."%(fz.sum(), j, i))
+                    hisopyc[j,i] = np.nanmedian(zref[fz])
 
     return hisopyc
 
