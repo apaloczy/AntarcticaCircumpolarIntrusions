@@ -245,6 +245,37 @@ def lon360to180(lon):
         return ((lon + 180.) % 360.) - 180.
 
 
+def rot_vec(u, v, angle=-45, degrees=True):
+        """
+        USAGE
+        -----
+        u_rot,v_rot = rot_vec(u,v,angle=-45.,degrees=True)
+
+        Returns the rotated vector components (`u_rot`,`v_rot`)
+        from the zonal-meridional input vector components (`u`,`v`).
+        The rotation is done using the angle `angle` positive counterclockwise
+        (trigonometric convention). If `degrees` is set to `True``(default),
+        then `angle` is converted to radians.
+        is
+
+        Example
+        -------
+        >>> from matplotlib.pyplot import quiver
+        >>> from ap_tools.utils import rot_vec
+        >>> u = -1.
+        >>> v = -1.
+        >>> u2,v2 = rot_vec(u,v, angle=-30.)
+        """
+        u,v = map(np.asanyarray, (u,v))
+        if degrees:
+                angle = angle*np.pi/180. # Degrees to radians.
+
+        u_rot = +u*np.cos(angle) + v*np.sin(angle) # Usually the across-shore component.
+        v_rot = -u*np.sin(angle) + v*np.cos(angle) # Usually the along-shore component.
+
+        return u_rot, v_rot
+
+
 def gamman(Sp, T, p, x, y):
     assert Sp.shape==T.shape
     n = np.size(p)
