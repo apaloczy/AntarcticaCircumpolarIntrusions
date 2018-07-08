@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
-# Cache dir (really large files).
+# Cache dir (large files).
 data_reproduce_figs/cache/*npz
 data_reproduce_figs/cache/*.nc
+
+# large_files dir (even larger files that are too big for git lfs).
+data_reproduce_figs/large_files/*nc
+data_reproduce_figs/large_files/*npz
