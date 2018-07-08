@@ -5,12 +5,14 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.special import erfinv
 from netCDF4 import num2date
 from mpl_toolkits.basemap import Basemap
 from pygamman import gamma_n as gmn
 from pygeodesy import Datums, VincentyError
 from pygeodesy.ellipsoidalVincenty import LatLon as LatLon
 from pygeodesy.sphericalNvector import LatLon as LatLon_sphere
+from pandas import Series
 
 
 def seasonal_avg(t, F):
@@ -274,6 +276,29 @@ def rot_vec(u, v, angle=-45, degrees=True):
         v_rot = -u*np.sin(angle) + v*np.cos(angle) # Usually the along-shore component.
 
         return u_rot, v_rot
+
+
+def angle_isobath(xiso, yiso, cyclic=True):
+    R = 6371000.0 # Mean radius of the earth in meters (6371 km), from gsw.constants.earth_radius.
+    deg2rad = np.pi/180. # [rad/deg]
+
+    if cyclic: # Add cyclic point.
+        xiso = np.append(xiso, xiso[0])
+        yiso = np.append(yiso, yiso[0])
+
+    # From the coordinates of the isobath, find the angle it forms with the
+    # zonal axis, using points k+1 and k.
+    shth = yiso.size-1
+    theta = np.zeros(shth)
+    for k in range(shth):
+        dyk = R*(yiso[k+1]-yiso[k])
+        dxk = R*(xiso[k+1]-xiso[k])*np.cos(yiso[k]*deg2rad)
+        theta[k] = np.arctan2(dyk,dxk)
+
+    xisom = 0.5*(xiso[1:] + xiso[:-1])
+    yisom = 0.5*(yiso[1:] + yiso[:-1])
+
+    return xisom, yisom, theta
 
 
 def gamman(Sp, T, p, x, y):
@@ -553,3 +578,231 @@ def montecarlo_gamman(sp_mean, spSE, t_mean, tSE, p0, z0, x0, y0, wanted_isoneut
     # are +-hgamman_err/2 (symmetric about each data point).
 
     return hgamman_MEANSEG, hgamman_err, hgamman_mc
+
+def crosscorr(x, y, nblks, maxlags=0, overlap=0, onesided=False, verbose=True):
+    """
+    Lag-N cross correlation averaged with Welch's Method.
+    Parameters
+    ----------
+    x, y     : Arrays of equal length.
+    nblks    : Number of blocks to average cross-correlation.
+    maxlags  : int, default (0) calculates te largest possible number of lags,
+               i.e., the number of points in each chunk.
+    overlap  : float, fraction of overlap between consecutive chunks. Default 0.
+    onesided : Whether to calculate the cross-correlation only at
+               positive lags (default False). Has no effect if
+               x and y are the same array, in which case the
+               one-sided autocorrelation function is calculated.
+
+    Returns
+    ----------
+    crosscorr : float array.
+    """
+    if x is y:
+        auto = True
+    else:
+        auto = False
+    x, y = np.array(x), np.array(y)
+    nx, ny = x.size, y.size
+    assert x.size==y.size, "The series must have the same length"
+
+    nblks, maxlags = int(nblks), int(maxlags)
+    ni = int(nx/nblks)               # Number of data points in each chunk.
+    dn = int(round(ni - overlap*ni)) # How many indices to move forward with
+                                     # each chunk (depends on the % overlap).
+
+    if maxlags==0:
+        if verbose:
+            print("Maximum lag was not specified. Accomodating it to block size (%d)."%ni)
+        maxlags = ni
+    elif maxlags>ni:
+        if verbose:
+            print("Maximum lag is too large. Accomodating it to block size (%d)."%ni)
+        maxlags = ni
+
+    if onesided:
+        lags = range(maxlags+1)
+    else:
+        lags = range(-maxlags, maxlags+1)
+
+    # Array that will receive cross-correlation of each block.
+    xycorr = np.zeros(len(lags))
+
+    n=0
+    il, ir = 0, ni
+    while ir<=nx:
+        xn = x[il:ir]
+        yn = y[il:ir]
+
+        # Calculate cross-correlation for current block up to desired maximum lag - 1.
+        xn, yn = map(Series, (xn, yn))
+        xycorr += np.array([xn.corr(yn.shift(periods=lagn)) for lagn in lags])
+
+        il+=dn; ir+=dn
+        n+=1
+
+    # pandas.Series.corr(method='pearson') -> pandas.nanops.nancorr() ...
+    # -> pandas.nanops.get_corr_function() -> np.corrcoef -> numpy.cov(bias=False as default).
+    # So np.corrcoef() returns the UNbiased correlation coefficient by default
+    # (i.e., normalized by N-k instead of N).
+
+    xycorr /= n    # Divide by number of blocks actually used.
+    ncap = nx - il # Number of points left out at the end of array.
+
+    if verbose:
+        print("")
+        if ncap==0:
+            print("No data points were left out.")
+        else:
+            print("Left last %d data points out (%.1f %% of all points)."%(ncap,100*ncap/nx))
+        print("Averaged %d blocks, each with %d lags."%(n,maxlags))
+        if overlap>0:
+            print("Intended %d blocks, but could fit %d blocks, with"%(nblks,n))
+            print('overlap of %.1f %%, %d points per block.'%(100*overlap,dn))
+        print("")
+
+    lags = np.array(lags)
+    if auto:
+        fo = np.where(lags==0)[0][0]
+        xycorr[fo+1:] = xycorr[fo+1:] + xycorr[:fo]
+        lags = lags[fo:]
+        xycorr = xycorr[fo:]
+
+    fgud=~np.isnan(xycorr)
+
+    return lags[fgud], xycorr[fgud]
+
+
+def Tdecorr(Rxx, M=None, dtau=1., verbose=False):
+    """
+    USAGE
+    -----
+    Td = Tdecorr(Rxx)
+
+    Computes the integral scale Td (AKA decorrelation scale, independence scale)
+    for a data sequence with autocorrelation function Rxx. 'M' is the number of
+    lags to incorporate in the summation (defaults to all lags) and 'dtau' is the
+    lag time step (defaults to 1).
+
+    The formal definition of the integral scale is the total area under the
+    autocorrelation curve Rxx(tau):
+
+    /+inf
+    Td = 2 * |     Rxx(tau) dtau
+    /0
+
+    In practice, however, Td may become unrealistic if all of Rxx is summed
+    (e.g., often goes to zero for data dominated by periodic signals); a
+    different approach is to instead change M in the summation and use the
+    maximum value of the integral Td(t):
+
+    /t
+    Td(t) = 2 * |     Rxx(tau) dtau
+    /0
+
+    References
+    ----------
+    e.g., Thomson and Emery (2014),
+    Data analysis methods in physical oceanography,
+    p. 274, equation 3.137a.
+
+    Gille lecture notes on data analysis, available
+    at http://www-pord.ucsd.edu/~sgille/mae127/lecture10.pdf
+    """
+    Rxx = np.asanyarray(Rxx)
+    C0 = Rxx[0]
+    N = Rxx.size # Sequence size.
+
+    # Number of lags 'M' to incorporate in the summation.
+    # Sum over all of the sequence if M is not chosen.
+    if not M:
+        M = N
+
+    # Integrate the autocorrelation function.
+    Td = np.zeros(M)
+    for m in range(M):
+        Tdaux = 0.
+        for k in range(m-1):
+            Rm = (Rxx[k] + Rxx[k+1])/2. # Midpoint value of the autocorrelation function.
+            Tdaux = Tdaux + Rm*dtau # Riemann-summing Rxx.
+
+        Td[m] = Tdaux
+
+    # Normalize the integral function by the autocorrelation at zero lag
+    # and double it to include the contribution of the side with
+    # negative lags (C is symmetric about zero).
+    Td = (2./C0)*Td
+
+    if verbose:
+        print("")
+        print("Theoretical integral scale --> 2 * int 0...+inf [Rxx(tau)] dtau: %.2f."%Td[-1])
+        print("")
+        print("Maximum value of the cumulative sum: %.2f."%Td.max())
+
+    return Td
+
+
+def Tdecorrw(x, nblks=30, ret_median=True, verbose=True):
+    """
+    USAGE
+    -----
+    Ti = Tdecorrw(x, nblks=30, ret_median=True, verbose=True)
+
+    'Ti' is the integral timescale calculated from the
+    autocorrelation function calculated for variable 'x'
+    block-averaged in 'nblks' chunks.
+    """
+    x = np.array(x)
+    dnblkslr = round(nblks/2)
+
+    tis = [Tdecorr(crosscorr(x, x, nblks=n, verbose=verbose)[1]).max() for n in range(nblks-dnblkslr, nblks+dnblkslr+1)]
+    tis = np.ma.masked_invalid(tis)
+
+    if verbose:
+        print("========================")
+        print(tis)
+        print("========================")
+        p1, p2, p3, p4, p5 = map(np.percentile, [tis]*5, (10, 25, 50, 75, 90))
+        print("--> 10 %%, 25 %%, 50 %%, 75 %%, 90 %% percentiles for Ti:  %.2f,  %.2f,  %.2f,  %.2f,  %.2f."%(p1, p2, p3, p4, p5))
+        print("------------------------")
+
+    if ret_median:
+        return np.median(tis)
+    else:
+        return tis
+
+def rsig(ndof_eff, alpha=0.95):
+	"""
+	USAGE
+	-----
+	Rsig = rsig(ndof_eff, alpha=0.95)
+
+	Computes the minimum (absolute) threshold value 'rsig' that
+	the Pearson correlation coefficient r between two normally-distributed
+	data sequences with 'ndof_eff' effective degrees of freedom has to have
+	to be statistically significant at the 'alpha' (defaults to 0.95)
+	confidence level.
+
+	For example, if rsig(ndof_eff, alpha=0.95) = 0.2 for a given pair of
+	NORMALLY-DISTRIBUTED samples with a correlation coefficient r>0.7, there
+	is a 95 % chance that the r estimated from the samples is significantly
+	different from zero. In other words, there is a 5 % chance that two random
+	sequences would have a correlation coefficient higher than 0.7.
+
+	OBS: This assumes that the two data series have a normal distribution.
+
+	Translated to Python from the original matlab code by Prof. Sarah Gille
+	(significance.m), available at http://www-pord.ucsd.edu/~sgille/sio221c/
+
+	References
+	----------
+	Gille lecture notes on data analysis, available
+	at http://www-pord.ucsd.edu/~sgille/mae127/lecture10.pdf
+
+	Example
+	-------
+	TODO
+	"""
+	rcrit_z = erfinv(alpha)*np.sqrt(2./ndof_eff)
+
+	return rcrit_z

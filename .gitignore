@@ -5,3 +5,6 @@ __pycache__/
 *.swp
 # C extensions
 *.so
+
+# Cache dir (really large files).
+data_reproduce_figs/cache
