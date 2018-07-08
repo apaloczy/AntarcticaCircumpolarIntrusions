@@ -537,7 +537,7 @@ def montecarlo_gamman(sp_mean, spSE, t_mean, tSE, p0, z0, x0, y0, wanted_isoneut
         hgamman_mcm = hgamman_mcm - hgamman_MEANSEG[ngm]
         hgamman_mcm = np.abs(hgamman_mcm)
         hlb, hrb = hgamman_mcm.min(), hgamman_mcm.max()
-        hgamman_hist, bins, _ = ax.hist(hgamman_mcm, bins=nbins, normed=True,
+        hgamman_hist, bins, _ = ax.hist(hgamman_mcm, bins=nbins, density=True,
                                         range=(hlb, hrb), color='b', histtype='bar')
 
         # Calculate and plot CDF.
