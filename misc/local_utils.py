@@ -22,6 +22,21 @@ def seasonal_avg(t, F):
     return np.array([F[ft].mean() for ft in ftmo])
 
 
+def seasonal_std(t, F):
+    """
+    USAGE
+    -----
+    F_seasonal = seasonal_std(t, F)
+
+    Calculates the seasonal standard deviation of variable F(t).
+    Assumes 't' is a 'datetime.datetime' object.
+    """
+    tmo = np.array([ti.month for ti in t])
+    ftmo = [tmo==mo for mo in range(1, 13)]
+
+    return np.array([F[ft].std() for ft in ftmo])
+
+
 def deseason(t, F):
     Fssn = seasonal_avg(t, F)
     nyears = int(t.size/12)
@@ -806,3 +821,30 @@ def rsig(ndof_eff, alpha=0.95):
 	rcrit_z = erfinv(alpha)*np.sqrt(2./ndof_eff)
 
 	return rcrit_z
+
+
+def arsig(r0, Ndt, T1, T2, verbose=True):
+    """
+    USAGE
+    -----
+    alpha_rsig = arsig(r0, Ndt, T1, T2, verbose=True)
+
+    The returned 'alpha_sig' is the CL at which the
+    correlation coefficient 'r0' between two variables
+    with integral timescales 'T1' and 'T2' and length 'Ndt'
+    is significant.
+    """
+    Tslow = np.maximum(T1, T2) # The effective number of
+    edof = Ndt/Tslow           # DoFs is constrained by the
+                               # slower-decorrelating variable.
+    alphai = 0.4
+    issig = True
+    while issig and alphai<1.0:
+        rsigi = rsig(edof, alpha=alphai)
+        issig=r0>=rsigi
+        alphai+=0.01
+
+    if verbose:
+        print("Queried r = %.3f with %.1f EDoF. It is significant at **%.2f** CL."%(r0, edof, alphai))
+
+    return alphai
