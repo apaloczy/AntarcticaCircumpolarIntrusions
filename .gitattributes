@@ -1,2 +1,7 @@
-*.npz filter=lfs diff=lfs merge=lfs -text
-*.nc filter=lfs diff=lfs merge=lfs -text
+data_reproduce_figs/eke_avg.npz filter=lfs diff=lfs merge=lfs -text
+data_reproduce_figs/gradrho_avg.npz filter=lfs diff=lfs merge=lfs -text
+data_reproduce_figs/Jb_avg.npz filter=lfs diff=lfs merge=lfs -text
+data_reproduce_figs/volmsk800m.npz filter=lfs diff=lfs merge=lfs -text
+data_reproduce_figs/volmsk1000m.npz filter=lfs diff=lfs merge=lfs -text
+data_reproduce_figs/volmsk2500m.npz filter=lfs diff=lfs merge=lfs -text
+data_reproduce_figs/sec_subsegments_psimean_psieddy_uqxm_uqxe.npz filter=lfs diff=lfs merge=lfs -text
