@@ -17,3 +17,4 @@ data_reproduce_figs/large_files/*npz
 # Other large files [O(100 MB)], replaced with links for download (listed on data_reproduce_figs/large_files/README.md).
 data_reproduce_figs/MEOPgrd_2005-2009.npz
 data_reproduce_figs/POP_topog.nc
+data_reproduce_figs/POP-dzu_dzt_kzit_subsetSO.nc
