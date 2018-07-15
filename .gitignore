@@ -13,3 +13,7 @@ data_reproduce_figs/cache/*.nc
 # large_files dir (even larger files that are too big for git lfs).
 data_reproduce_figs/large_files/*nc
 data_reproduce_figs/large_files/*npz
+
+# Other large files [O(100 MB)], replaced with links for download (listed on data_reproduce_figs/large_files/README.md).
+data_reproduce_figs/MEOPgrd_2005-2009.npz
+data_reproduce_figs/POP_topog.nc
