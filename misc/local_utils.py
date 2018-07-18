@@ -594,7 +594,7 @@ def montecarlo_gamman(sp_mean, spSE, t_mean, tSE, p0, z0, x0, y0, wanted_isoneut
 
     return hgamman_MEANSEG, hgamman_err, hgamman_mc
 
-def crosscorr(x, y, nblks, maxlags=0, overlap=0, onesided=False, verbose=True):
+def crosscorr(x, y, nblks, maxlags=0, overlap=0, onesided=False, verbose=False):
     """
     Lag-N cross correlation averaged with Welch's Method.
     Parameters
