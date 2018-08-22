@@ -12,32 +12,36 @@ This file contains download links for the large data files (larger than 100 MB b
 Once you download the file required by the notebook you are attempting to run, place it on
 this directory **(AntarcticaCircumpolarIntrusions/data_reproduce_figs/)** on your local copy of the repository.
 
-### Metadata for some of the .npz files
+### Metadata for some of the .npz files:
 
-* __htadv_tseries.npz__
+---
+
+__htadv_tseries.npz__
 
 This file contains the mean, eddy and total cross-isobath heat transports integrated over the along-isobath span of each segment. It also contains the divergence of the total heat transport in the along-shelf direction at each segment.
 
-*Variables:*
+__Variables:__
 
-- *t*: Time index, 612 months from Jan/1959 through Dec/2009.
-- *uqx_onshore* (dictionary): Time series of the total (mean+eddy) heat transport entering the domain of each segment, positive onshore.
-- *uqxm_onshore* (dictionary): Same as uqx_onshore, but for the mean heat transport.
-- *uqxe_onshore* (dictionary): Same as uqx_onshore, but for the eddy heat transport.
-- *uqx_alongshelf_convergence* (dictionary): Same as _UQxdiv_ashf_ in the "hflxmelt_alongshelf_xwbry_tseries1000m.npz" file (see below), but with the sign flipped. It is positive when there is along-shelf heat *convergence* in the segment.
+- __t__: Time index, 612 months from Jan/1959 through Dec/2009.
+- __uqx_onshore__ (dictionary): Time series of the total (mean+eddy) heat transport entering the domain of each segment, positive onshore.
+- __uqxm_onshore__ (dictionary): Same as uqx_onshore, but for the mean heat transport.
+- __uqxe_onshore__ (dictionary): Same as uqx_onshore, but for the eddy heat transport.
+- __uqx_alongshelf_convergence__ (dictionary): Same as _UQxdiv_ashf_ in the "hflxmelt_alongshelf_xwbry_tseries1000m.npz" file (see below), but with the sign flipped. It is positive when there is along-shelf heat __convergence__ in the segment.
 
-* __hflxmelt_alongshelf_xwbry_tseries1000m.npz__
+---
+
+__hflxmelt_alongshelf_xwbry_tseries1000m.npz__
 
 This file contains time series of heat transports across the western walls of each segment, and the divergence of the transports in the along-shelf direction, for each segment.
 
-*Variables:*
+__Variables:__
 
-- *t*: Time index, 612 months from Jan/1959 through Dec/2009.
-- *UQx* (dictionary): Total (mean+eddy) along-shelf heat transport across the _west_ wall of the segment, positive eastward. For example, UQx['Bellingshausen'] is the time series of the total heat transport entering the Bellingshausen segment from the east wall of the Amundsen segment (or west wall of the Bellingshausen segment).
-- *UQxm* (dictionary): Same as UQx, but for the mean component of the heat transports.
-- *UQxe* (dictionary): Same as UQx, but for the eddy component of the heat transports.
-- *Ux* (dictionary): Same as UQx, but for the along-shelf _volume_ transports across segments.
-- *UQxdiv_ashf* (dictionary): The along-shelf divergence of the total heat transport in each segment. It is the difference between the east and west transports. It is positive when there is less heat entering the domain across the west wall than heat exiting the domain across the east wall.
-- *Uxdiv_ashf* (dictionary): Same as UQxdiv_ashf, but for the along-shelf _volume_ transports across segments.
+- __t__: Time index, 612 months from Jan/1959 through Dec/2009.
+- __UQx__ (dictionary): Total (mean+eddy) along-shelf heat transport across the _west_ wall of the segment, positive eastward. For example, UQx['Bellingshausen'] is the time series of the total heat transport entering the Bellingshausen segment from the east wall of the Amundsen segment (or west wall of the Bellingshausen segment).
+- __UQxm__ (dictionary): Same as UQx, but for the mean component of the heat transports.
+- __UQxe__ (dictionary): Same as UQx, but for the eddy component of the heat transports.
+- __Ux__ (dictionary): Same as UQx, but for the along-shelf _volume_ transports across segments.
+- __UQxdiv_ashf__ (dictionary): The along-shelf divergence of the total heat transport in each segment. It is the difference between the east and west transports. It is positive when there is less heat entering the domain across the west wall than heat exiting the domain across the east wall.
+- __Uxdiv_ashf__ (dictionary): Same as UQxdiv_ashf, but for the along-shelf _volume_ transports across segments.
 
 Please [contact André Palóczy](mailto:apaloczy@ucsd.edu) with any questions or if you have issues downloading the files.
