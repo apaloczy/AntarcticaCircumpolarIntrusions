@@ -316,6 +316,21 @@ def angle_isobath(xiso, yiso, cyclic=True):
     return xisom, yisom, theta
 
 
+def fmt_isobath(cs, fontsize=8, fmt='%g', inline=True, inline_spacing=7, manual=True, **kw):
+	"""
+	Formats the labels of isobath contours. `manual` is set to `True` by default,
+	but can be `False`, or a tuple/list of tuples with the coordinates of the labels.
+	All options are passed to plt.clabel().
+	"""
+	isobstrH = plt.clabel(cs, fontsize=fontsize, fmt=fmt, inline=inline, \
+                          inline_spacing=inline_spacing, manual=manual, **kw)
+	for ih in range(0, len(isobstrH)): # Appends 'm' for meters at the end of the label.
+		isobstrh = isobstrH[ih]
+		isobstr = isobstrh.get_text()
+		isobstr = isobstr.replace('-','') + ' m'
+		isobstrh.set_text(isobstr)
+
+
 def gamman(Sp, T, p, x, y):
     assert Sp.shape==T.shape
     n = np.size(p)
