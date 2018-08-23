@@ -18,6 +18,5 @@ data_reproduce_figs/large_files/*npz
 data_reproduce_figs/MEOPgrd_2005-2009.npz
 data_reproduce_figs/POP_topog.nc
 data_reproduce_figs/POP-dzu_dzt_kzit_subsetSO.nc
-data_reproduce_figs/Jb.npz
 data_reproduce_figs/gradRHO.npz
 data_reproduce_figs/PTbot.npz
