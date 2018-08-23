@@ -44,4 +44,6 @@ __Variables:__
 - __UQxdiv_ashf__ (dictionary): The along-shelf divergence of the total heat transport in each segment. It is the difference between the east and west transports. It is positive when there is less heat entering the domain across the west wall than heat exiting the domain across the east wall.
 - __Uxdiv_ashf__ (dictionary): Same as UQxdiv_ashf, but for the along-shelf _volume_ transports across segments.
 
+---
+
 Please [contact André Palóczy](mailto:apaloczy@ucsd.edu) with any questions or if you have issues downloading the files.
