@@ -1,4 +1,7 @@
 # AntarcticaCircumpolarIntrusions
+
+[![DOI](https://zenodo.org/badge/91201018.svg)](https://zenodo.org/badge/latestdoi/91201018)
+
 This repository contains codes and processed datasets for a manuscript entitled [**"Oceanic heat delivery to the Antarctic continental shelf: Large-scale, low-frequency variability"** (2018)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2018JC014345), by A. Palóczy, S. T. Gille and J. L. McClean (Journal of Geophysical Research – Oceans). This [Jupyter notebook](http://nbviewer.jupyter.org/github/apaloczy/AntarcticaCircumpolarIntrusions/blob/master/index.ipynb) provides an overview of the contents.
 
 The directory **plot_figs/** contains the Python codes used to produce all figures in the main manuscript (Figures 1-10) and Figures S3-S10 and S1 in the Supplementary Materials. The codes depend on the data files in the **data_reproduce_figs/** directory. Some of these are too large to be included in this repository, but are available for download from the links listed on the accompanying README files. Please contact [André Palóczy](mailto:apaloczy@ucsd.edu) if you have issues downloading the files.
